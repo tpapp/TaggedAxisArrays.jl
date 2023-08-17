@@ -29,12 +29,6 @@ function Base.:(==)(a1::TaggedAxis, a2::TaggedAxis)
     a1.tag == a2.tag && a1.parent_axis == a2.parent_axis
 end
 
-# function Base.:(==)(a1::TaggedAxis, a2::AbstractUnitRange)
-#     a1.tag ≡ nothing && a1 == a2
-# end
-
-# Base.:(==)(a1::AbstractUnitRange, a2::TaggedAxis) = a2 == a1
-
 function Base.show(io::IO
                    , tagged_axis::TaggedAxis)
     (; tag, parent_axis) = tagged_axis
@@ -43,11 +37,22 @@ end
 
 struct Tag{S}
     tag::S
+    """
+    $(SIGNATURES)
+
+    Tag the corresponding axis with the argument, which can be an arbitrary value. Tags are
+    considered the same when `==`.
+    """
     function Tag(tag::S) where S
         new{S}(tag)
     end
 end
 
+"""
+    NoTag()
+
+Don't tag the corresponding axis.
+"""
 struct NoTag end
 
 _tag_axis(tag::Tag, axis) = TaggedAxis(tag.tag, axis)
@@ -56,7 +61,7 @@ _tag_axis(::NoTag, axis) = axis
 _tag_of_axis(a::TaggedAxis) = Tag(a.tag)
 _tag_of_axis(a) = NoTag()
 
-const NTags{N} = NTuple{N,Union{Tag,NoTag}}
+const NTags{N} = NTuple{N,Union{Tag,NoTag}} # FIXME do we use this more than once?
 
 ####
 #### array
@@ -74,7 +79,13 @@ The tags of the array as a `Tuple`. `NoTag()` stands for untagged axes.
 """
 tags(A::TaggedAxisArray) = A.tags
 
-TaggedAxisArray(A::TaggedAxisArray, tags) = TaggedAxisArray(parent(A), tags)
+"""
+$(SIGNATURES)
+
+Wrap an array, optionally tagging each axis with the given tags, which can be `Tag(tag)` or
+`NoTag()`.
+"""
+TaggedAxisArray(A::TaggedAxisArray, tags::Tuple) = TaggedAxisArray(parent(A), tags)
 
 const TaggedAxisVector{T,P<:AbstractVector{T}} = TaggedAxisArray{T,1,P}
 
@@ -90,6 +101,17 @@ struct TagNth{N,S}
     tag::S
 end
 
+"""
+$(SIGNATURES)
+
+Tag the `nth` index with the given tag.
+
+# Example
+
+```julia
+TaggedAxisArray(randn(3, 3, 3), tag_nth(3, "my tag"))
+```
+"""
 tag_nth(::Val{N}, tag) where N = TagNth{N}(tag)
 
 @inline tag_nth(N::Int, tag) = tag_nth(Val(N), tag)
