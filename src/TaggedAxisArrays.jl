@@ -35,7 +35,9 @@ function Base.show(io::IO
     print(io, parent_axis, " tagged ", tag)
 end
 
-struct Tag{S}
+abstract type MaybeTag end
+
+struct Tag{S} <: MaybeTag
     tag::S
     """
     $(SIGNATURES)
@@ -53,7 +55,7 @@ end
 
 Don't tag the corresponding axis.
 """
-struct NoTag end
+struct NoTag <: MaybeTag end
 
 _tag_axis(tag::Tag, axis) = TaggedAxis(tag.tag, axis)
 _tag_axis(::NoTag, axis) = axis
@@ -61,7 +63,7 @@ _tag_axis(::NoTag, axis) = axis
 _tag_of_axis(a::TaggedAxis) = Tag(a.tag)
 _tag_of_axis(a) = NoTag()
 
-const NTags{N} = NTuple{N,Union{Tag,NoTag}}
+const NTags{N} = NTuple{N,MaybeTag}
 
 ####
 #### array
@@ -83,6 +85,8 @@ The tags of the array as a `Tuple`. `NoTag()` stands for untagged axes.
 """
 tags(A::TaggedAxisArray) = A.tags
 
+tags(A::AbstractArray) = map(_tag_of_axis, axes(A))
+
 """
 $(SIGNATURES)
 
@@ -93,11 +97,11 @@ TaggedAxisArray(A::TaggedAxisArray, tags::Tuple) = TaggedAxisArray(parent(A), ta
 
 const TaggedAxisVector{T,P<:AbstractVector{T}} = TaggedAxisArray{T,1,P}
 
-TaggedAxisVector(v::AbstractVector, tag::Tag) = TaggedAxisArray(v, (tag, ))
+TaggedAxisVector(v::AbstractVector, tag::MaybeTag) = TaggedAxisArray(v, (tag, ))
 
 const TaggedAxisMatrix{T,P<:AbstractMatrix{T}} = TaggedAxisArray{T,2,P}
 
-function TaggedAxisMatrix(v::AbstractVector, tag1::Tag, tag2::Tag)
+function TaggedAxisMatrix(v::AbstractMatrix, tag1::MaybeTag, tag2::MaybeTag)
     TaggedAxisArray(v, (tag1, tag2))
 end
 

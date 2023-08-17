@@ -13,6 +13,10 @@ a2 = TaggedAxisVector(1:4, Tag(2))
 b = 1:2
 @test a1 .+ b' == TaggedAxisArray(parent(a1) .+ b', (tags(a1)..., NoTag()))
 
+m = reshape(1:15, 3, :)
+tm = TaggedAxisMatrix(m, NoTag(), Tag("t"))
+@test tags(eachcol(tm)) == (Tag("t"),)
+
 ## NOTE add JET to the test environment, then uncomment
 # using JET
 # @testset "static analysis with JET.jl" begin
