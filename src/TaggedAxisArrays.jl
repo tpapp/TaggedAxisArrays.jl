@@ -61,7 +61,7 @@ _tag_axis(::NoTag, axis) = axis
 _tag_of_axis(a::TaggedAxis) = Tag(a.tag)
 _tag_of_axis(a) = NoTag()
 
-const NTags{N} = NTuple{N,Union{Tag,NoTag}} # FIXME do we use this more than once?
+const NTags{N} = NTuple{N,Union{Tag,NoTag}}
 
 ####
 #### array
@@ -70,6 +70,10 @@ const NTags{N} = NTuple{N,Union{Tag,NoTag}} # FIXME do we use this more than onc
 struct TaggedAxisArray{T,N,P<:AbstractArray{T,N},G<:NTags{N}} <: AbstractArray{T,N}
     parent::P
     tags::G
+    function TaggedAxisArray(parent::P, tags::G) where {T,N,P<:AbstractArray{T,N},G<:NTags{N}}
+        @argcheck !Base.has_offset_axes(parent) "No offset axes yet, mean to fix this later."
+        new{T,N,P,G}(parent, tags)
+    end
 end
 
 """
@@ -122,7 +126,7 @@ function TaggedAxisArray(parent::AbstractArray{T,N}, tn::TagNth{M}) where {T,N,M
     TaggedAxisArray(parent, tags)
 end
 
-@inline _parent_type(A::TaggedAxisArray{P}) where P = P
+@inline _parent_type(::Type{<:TaggedAxisArray{T,N,P}}) where {T,N,P} = P
 
 @inline Base.parent(A::TaggedAxisArray) = A.parent
 
@@ -167,11 +171,13 @@ struct TaggedAxisStyle <: BroadcastStyle end
 
 BroadcastStyle(::Type{<:TaggedAxisArray}) = TaggedAxisStyle()
 
-BroadcastStyle(a::TaggedAxisStyle, _) = a # currently, we trump anything, fix later
+# FIXME currently, we trump anything, fix later
+BroadcastStyle(a::TaggedAxisStyle, ::BroadcastStyle) = a
 
 function Base.similar(bc::Broadcast.Broadcasted{<:TaggedAxisStyle}, ::Type{T}) where {T}
     tags = map(_tag_of_axis, axes(bc))
-    TaggedAxisArray(similar(Array{T}, map(parent, bc.axes)), tags)
+    # FIXME this is unsatisfactory since we only deal with regular indexing
+    TaggedAxisArray(similar(Array{T}, map(length ∘ parent, bc.axes)), tags)
 end
 
 end # module

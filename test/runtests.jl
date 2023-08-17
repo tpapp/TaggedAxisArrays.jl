@@ -4,10 +4,14 @@ using Test
 a1 = TaggedAxisVector(1:4, Tag(1))
 a2 = TaggedAxisVector(1:4, Tag(2))
 
+@test a1 == a1
+@test a1 != a2
+
 @test_throws DimensionMismatch a1 .+ a2
 @test a1 .+ a1 == TaggedAxisArray(parent(a1) .+ parent(a1), tags(a1))
 
-# write tests here
+b = 1:2
+@test a1 .+ b' == TaggedAxisArray(parent(a1) .+ b', (tags(a1)..., NoTag()))
 
 ## NOTE add JET to the test environment, then uncomment
 # using JET
