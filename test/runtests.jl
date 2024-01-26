@@ -23,10 +23,10 @@ tm = TaggedAxisMatrix(m, NoTag(), Tag("t"))
 #     @test isempty(JET.get_reports(report_package(TaggedAxisArrays, target_modules=(TaggedAxisArrays,))))
 # end
 
-## NOTE add Aqua to the test environment, then uncomment
-# @testset "QA with Aqua" begin
-#     import Aqua
-#     Aqua.test_all(TaggedAxisArrays; ambiguities = false)
-#     # testing separately, cf https://github.com/JuliaTesting/Aqua.jl/issues/77
-#     Aqua.test_ambiguities(TaggedAxisArrays)
-# end
+NOTE add Aqua to the test environment, then uncomment
+@testset "QA with Aqua" begin
+    import Aqua
+    Aqua.test_all(TaggedAxisArrays; ambiguities = false)
+    # testing separately, cf https://github.com/JuliaTesting/Aqua.jl/issues/77
+    Aqua.test_ambiguities(TaggedAxisArrays)
+end
