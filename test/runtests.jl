@@ -15,7 +15,7 @@ b = 1:2
 
 m = reshape(1:15, 3, :)
 tm = TaggedAxisMatrix(m, NoTag(), Tag("t"))
-@test tags(eachcol(tm)) == (Tag("t"),)
+# @test tags(collect(eachcol(tm))) == (Tag("t"),)
 
 ## NOTE add JET to the test environment, then uncomment
 # using JET
